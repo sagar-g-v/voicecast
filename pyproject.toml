@@ -1,0 +1,23 @@
+[build-system]
+requires = ["setuptools>=61"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "voicecast"
+version = "0.1.0"
+description = "Voice a script of lines with TTS: one consistent voice per speaker, tone per line, voice selection from samples"
+readme = "README.md"
+license = { text = "MIT" }
+requires-python = ">=3.11"
+dependencies = ["torch>=2.0", "numpy>=1.23", "soundfile>=0.12", "transformers>=4.43,<4.47",
+                "parler-tts @ git+https://github.com/huggingface/parler-tts.git"]
+
+[project.optional-dependencies]
+numbers = ["num2words>=0.5"]
+test = ["pytest"]
+
+[project.scripts]
+voicecast = "voicecast.cli:main"
+
+[tool.setuptools]
+packages = ["voicecast"]

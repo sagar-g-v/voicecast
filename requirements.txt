@@ -1,0 +1,7 @@
+torch>=2.0
+numpy>=1.23
+soundfile>=0.12
+transformers>=4.43,<4.47
+parler-tts @ git+https://github.com/huggingface/parler-tts.git
+# optional: numbers as words
+# num2words>=0.5
