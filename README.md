@@ -1,8 +1,17 @@
 # voicecast
 
-Voice a script of lines with text-to-speech. Each speaker gets one consistent
-voice, the tone follows each line, and you choose the voices by listening to
-candidates side by side.
+Turn screenplays, stories, subtitles and dialogue transcripts into voiced
+audio. Each character gets one consistent voice, the tone follows each line,
+and you choose the voices by listening to candidates side by side.
+
+- **Imports.** It reads Fountain or plain-text screenplays, `.srt` / `.vtt`
+  subtitles, prose stories and novels (quoted speech is attributed from
+  "said Maya" style phrases, and the rest becomes narration), and `Name: text`
+  transcripts. Screenplay parentheticals such as *(angrily)* or *(whispering)*
+  set how a line is said.
+- **Casting.** `cast` lists every character with how much they speak and
+  which voice they get. `--add-missing` adds the uncast ones to `voices.txt`
+  for you to fill in.
 
 - **Voices described in words.** voicecast uses
   [Parler-TTS](https://github.com/huggingface/parler-tts) models. A voice is a
@@ -52,6 +61,19 @@ The model downloads from Hugging Face on first use, about 3.7 GB for Indic Parle
 
 ## Quick start
 
+From a script to audio:
+
+```bash
+python -m voicecast init myproject                  # voicecast.toml, voices.txt, glossary.txt
+cd myproject
+python -m voicecast import ../my_film.fountain      # -> my_film.lines.jsonl (also .srt, .vtt, stories, transcripts)
+python -m voicecast cast my_film.lines.jsonl --add-missing    # every character -> voices.txt, describe each voice
+python -m voicecast samples my_film.lines.jsonl     # compare candidate voices (see [[candidates.*]])
+python -m voicecast run my_film.lines.jsonl         # voice everything into voices/
+```
+
+With the bundled example lines:
+
 ```bash
 python -m voicecast init myproject          # example voicecast.toml, voices.txt, glossary.txt, lines
 cd myproject
@@ -60,6 +82,20 @@ python -m voicecast samples lines.example.jsonl          # samples.html: candida
 python -m voicecast pick Alice A2                        # use candidate A2 for Alice
 python -m voicecast run lines.example.jsonl              # voice everything into voices/
 ```
+
+## Importing scripts and stories
+
+`voicecast import SOURCE [-o lines.jsonl] [--format auto|screenplay|subtitles|prose|dialogue]`
+
+| source | what becomes what |
+|---|---|
+| screenplay (`.fountain`, or `.txt` with CHARACTER cues in capitals) | Dialogue goes under its character. Extensions such as `(V.O.)` and `(CONT'D)` are removed, and `(parentheticals)` become the line's delivery hint. Action paragraphs become Narrator lines. Scene headings, transitions, notes and the title page are skipped; `--scene-headings` voices the headings too. |
+| subtitles (`.srt`, `.vtt`) | Each cue becomes a line with its `start` and `end` times. The speaker comes from `<v Name>`, a `NAME:` prefix or the previous cue. `[whispering]` becomes the hint. |
+| prose (novel or story text) | Quotes go to the speaker named nearby (`"…," Maya said` or `said Maya`). Unnamed quotes in a back-and-forth alternate between the two speakers, and anything else goes to `Unknown`. Speech verbs (whispered, shouted…) become the hint. The rest is narration. Prose attribution is a heuristic, so check it with `cast`. |
+| transcripts | `Name: text`, optionally with `[00:01]` timestamps and `(quietly)` hints. Lines without a name become narration. |
+
+`--no-narration` keeps dialogue only. Line ids follow reading order
+(`my_film-0001`, …), so the output files sort in story order.
 
 ## Lines
 

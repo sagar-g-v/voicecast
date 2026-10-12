@@ -24,11 +24,12 @@ def detect_mood(cfg, line):
         return line.mood, None
     if not m["enabled"]:
         return None, None
-    probe = line.hint if (m["use_hint"] and line.hint) else line.text
-    for name, rx, tpl in cfg.moods:
-        if rx.search(probe):
-            return name, tpl
-    if "!" in probe:
+    probes = ([line.hint] if (m["use_hint"] and line.hint) else []) + [line.text]
+    for probe in probes:                        # the hint (how it's said) wins over the words
+        for name, rx, tpl in cfg.moods:
+            if rx.search(probe):
+                return name, tpl
+    if "!" in line.text:
         return "animated", m["exclaim_template"]
     return None, m["plain_template"]
 
@@ -40,6 +41,8 @@ def with_mood(cfg, desc, line, tones=()):
     '<Name> speaks ...' get the mood appended as a sentence."""
     name, tpl = detect_mood(cfg, line)
     m = re.match(r"(\w+) speaks (.*?)\.\s*(.*)$", desc, re.S)
+    if m and name is None and re.search(r"\btone\b", m.group(2)):
+        tpl = None                                      # a plain line: the voice's own tone stays
     if tpl and m:
         who, how, rest = m.groups()
         if re.search(r"slow|fast", tpl):                # the mood sets the pace itself

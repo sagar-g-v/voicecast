@@ -51,19 +51,24 @@ DEFAULTS = {
 }
 
 DEFAULT_MOODS = [
-    {"name": "whisper", "pattern": r"\(whisper|whispering|\bwhispers?\b|^\s*\*whisper", "flags": "i",
+    {"name": "whisper", "pattern": r"whisper|\bsotto voce\b|\bquietly\b|\bunder (?:his|her|their) breath\b|"
+                                   r"\bhushed\b|\bmurmur", "flags": "i",
      "template": "{name} whispers very softly and slowly in a hushed, breathy voice, close-sounding"},
-    {"name": "anger", "pattern": r"how dare|damn you|shut up|get out|\bidiot|stupid|stop it|go away|get lost|"
-                                 r"disgusting|\b[A-Z]{4,}\b.*!", "flags": "",
+    {"name": "anger", "pattern": r"(?i:\bangr|\bfurious|\bshout|\byell|\bscream|\bsnap|\bgrowl|\bhiss|\benraged|"
+                                 r"how dare|damn you|shut up|get out|\bidiot|stupid|stop it|go away|get lost|"
+                                 r"disgusting)|\b[A-Z]{4,}\b.*!", "flags": "",
      "template": "{name} speaks in an angry tone, loud and sharp, expressive"},
-    {"name": "fear", "pattern": r"scared|afraid|help me|don't hurt|please don't|no+,? no+|terrified", "flags": "i",
+    {"name": "fear", "pattern": r"\bscared|\bafraid|\bfrighten|\bterrified|\bnervous|\btrembl|\bpanick|help me|"
+                                r"don't hurt|please don't|no+,? no+", "flags": "i",
      "template": "{name} speaks in a fearful, trembling tone, slightly fast, expressive"},
-    {"name": "sad", "pattern": r"\bsorry\b|\bsob|\bcry|crying|\btears?\b|\bsad\b|lonely|i miss|forgive me|\bsigh",
-     "flags": "i", "template": "{name} speaks in a sad tone, slowly and softly, slightly expressive"},
-    {"name": "surprise", "pattern": r"\?!|!\?|^\W*(?:what|huh|eh+|really|seriously|no way|oh my|wow|whoa)\b[^.]*[?!]",
+    {"name": "sad", "pattern": r"\bsorry\b|\bsob|\bcry|\bcries|crying|\btear|\bsad\b|sadly|lonely|i miss|forgive me|"
+                               r"\bsigh|\bgrie|\bmourn|\bdejected|\bheartbroken", "flags": "i",
+     "template": "{name} speaks in a sad tone, slowly and softly, slightly expressive"},
+    {"name": "surprise", "pattern": r"\bsurpris|\bshock|\bstunned|\bastonish|\bgasp|\?!|!\?|"
+                                    r"^\W*(?:what|huh|eh+|really|seriously|no way|oh my|wow|whoa)\b[^.]*[?!]",
      "flags": "i", "template": "{name} speaks in a surprised tone with a higher pitch, animated"},
-    {"name": "happy", "pattern": r"\bha(?:ha)+|\bhe(?:he)+|giggle|\byay\b|\bthank|\bglad\b|\bhappy\b|wonderful|"
-                                 r"love it|great|~\s*$", "flags": "i",
+    {"name": "happy", "pattern": r"\bha(?:ha)+|\bhe(?:he)+|giggl|\blaugh|\bsmil|\bgrin|\bcheer|\bexcited|"
+                                 r"\byay\b|\bthank|\bglad\b|\bhappy\b|wonderful|love it|great|~\s*$", "flags": "i",
      "template": "{name} speaks in a happy, cheerful tone with a smile, expressive"},
 ]
 

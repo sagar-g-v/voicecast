@@ -1,6 +1,8 @@
 """voicecast: voice a script of lines with TTS, one voice per speaker.
 
-  init      [DIR]               write an example voicecast.toml + voices.txt
+  init      [DIR]               write an example project (voicecast.toml, voices.txt, glossary.txt)
+  import    SCRIPT              screenplay / subtitles / story / transcript -> a lines file
+  cast      LINES               the speakers, how much each says, which voice each gets
   check     LINES               show what each line will say, in which voice (no model)
   samples   LINES               candidate voices side by side on one page, to choose from
   pick      SPEAKER KEY         use candidate KEY as SPEAKER's voice (writes voices.txt)
@@ -198,6 +200,51 @@ def cmd_pick(args):
     print(samples.pick(cfg, args.speaker, args.key, vfile))
 
 
+def cmd_import(args):
+    from . import importers
+    opts = {"narration": not args.no_narration, "scene_headings": args.scene_headings}
+    fmt, rows = importers.convert(args.source, args.format, **opts)
+    out = args.out or str(Path(args.source).with_suffix(".lines.jsonl"))
+    importers.write_jsonl(rows, out)
+    speakers = {}
+    for r in rows:
+        speakers[r["speaker"]] = speakers.get(r["speaker"], 0) + 1
+    print(f"{fmt}: {len(rows)} line(s), {len(speakers)} speaker(s) -> {out}")
+    for s, n in sorted(speakers.items(), key=lambda x: -x[1])[:15]:
+        print(f"  {n:6d}  {s}")
+
+
+def cmd_cast(args):
+    from .voices import describe
+    cfg, lines = _load(args)
+    counts, chars = {}, {}
+    for ln in lines:
+        counts[ln.speaker] = counts.get(ln.speaker, 0) + 1
+        chars[ln.speaker] = chars.get(ln.speaker, 0) + len(ln.text)
+    missing = []
+    for spk in sorted(counts, key=lambda s: -chars[s]):
+        if spk.lower() in cfg.voices:
+            how = "own voice"
+        elif any(rx.search(spk) for rx, _ in cfg.patterns):
+            how = "pattern"
+        elif cfg.default_voice:
+            how = "default (*)"
+            missing.append(spk)
+        else:
+            how = "NO VOICE"
+            missing.append(spk)
+        print(f"{counts[spk]:6d} lines {chars[spk]:8d} chars  {how:12}  {spk}")
+    if args.add_missing and missing:
+        raw = config_mod.tomllib.loads(Path(args.config).read_text(encoding="utf-8")) if Path(args.config).exists() else {}
+        vfile = Path(args.config).parent / raw.get("voices_file", "voices.txt")
+        stub = cfg.default_voice or "Mary speaks at a moderate pace with a clear voice. Very clear audio."
+        with open(vfile, "a", encoding="utf-8") as fh:
+            fh.write("\n# added by `voicecast cast --add-missing`: give each one its own description\n")
+            for spk in missing:
+                fh.write(f"{spk} = {stub}\n")
+        print(f"added {len(missing)} speaker(s) to {vfile}")
+
+
 def cmd_convert(args):
     from . import convert
     cfg = config_mod.load(args.config)
@@ -220,6 +267,20 @@ def main(argv=None):
         p.add_argument("lines", help="lines file: .jsonl / .json / .csv / .tsv / .txt")
         p.add_argument("--default-speaker", default="narrator", help="for lines without a speaker")
         p.add_argument("--speaker", action="append", help="only this speaker (repeatable)")
+
+    p = sub.add_parser("import", help="a screenplay / subtitles / story / transcript -> a lines file")
+    p.add_argument("source", help=".fountain / screenplay .txt, .srt / .vtt, a story (.txt / .md), a transcript")
+    p.add_argument("-o", "--out", default=None, help="output .jsonl (default: <source>.lines.jsonl)")
+    p.add_argument("--format", default="auto", choices=["auto", "screenplay", "subtitles", "prose", "dialogue"])
+    p.add_argument("--no-narration", action="store_true", help="dialogue only (no action / narration lines)")
+    p.add_argument("--scene-headings", action="store_true", help="screenplays: also voice the scene headings")
+    p.set_defaults(func=cmd_import)
+
+    p = sub.add_parser("cast", help="the speakers in a lines file and which voice each gets")
+    lines_args(p)
+    p.add_argument("--add-missing", action="store_true",
+                   help="add speakers without their own voice to voices.txt (to fill in)")
+    p.set_defaults(func=cmd_cast)
 
     p = sub.add_parser("check", help="dry run: text and voice per line, no model")
     lines_args(p)
