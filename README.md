@@ -196,6 +196,6 @@ python -m pytest -q        # no model needed: a fake engine stands in for TTS
 
 ## License
 
-The code is MIT licensed (see `LICENSE`). Models are not included and keep
+The code is licensed under the Apache License 2.0 (see `LICENSE`). Models are not included and keep
 their own licenses: Indic Parler-TTS is Apache-2.0, Seed-VC is GPL-3.0. A
 reference voice used for conversion must be one you have the rights to use.
